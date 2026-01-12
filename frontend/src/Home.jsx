@@ -4,34 +4,43 @@ import {
   deleteUser,
   getUser,
   getUsers,
+  logout,
   updateUser,
 } from "./redux/slice/UserSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { userSelector } from "./redux/selector/selector";
 import { Typography, Table, Modal, Form, message, Button, Input } from "antd";
 import UserForm from "./component/UserForm";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
 const Home = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
 
-  const { users, userData } = useSelector(userSelector);
+  const { users, userData, total } = useSelector(userSelector);
 
   const [user, setUser] = useState(null);
   const [openCreate, setOpenCreate] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    dispatch(getUsers());
-    if (user) {
-      dispatch(getUser(user));
-    } else {
-      dispatch(getUser("7"));
+    const token = localStorage.getItem("access");
+    if (!token) {
+      window.location.href = "/login";
     }
-  }, [dispatch, user]);
+  }, []);
+
+  useEffect(() => {
+    dispatch(getUsers(page));
+
+    if (user) dispatch(getUser(user));
+    else dispatch(getUser("7"));
+  }, [dispatch, user, page]);
 
   const confirmDelete = (user) => {
     Modal.confirm({
@@ -170,9 +179,29 @@ const Home = () => {
         >
           Create User
         </Button>
+        <Button
+          size="large"
+          onClick={() => {
+            dispatch(logout());
+            message.success("Logged out");
+            navigate("/login");
+          }}
+        >
+          Logout
+        </Button>
       </div>
 
-      <Table className="w-full" dataSource={users} columns={columns} />
+      <Table
+        className="w-full"
+        dataSource={users}
+        columns={columns}
+        pagination={{
+          current: page,
+          pageSize: 5,
+          total: total,
+          onChange: (pageNumber) => setPage(pageNumber),
+        }}
+      />
 
       <Modal
         title="Edit User"

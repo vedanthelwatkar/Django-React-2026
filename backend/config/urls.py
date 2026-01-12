@@ -17,11 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app.views import get_csrf, home, UserDetailView, UserListView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name= 'home'),
     path('get-csrf/', get_csrf, name = 'get_csrf'),
     path("users/", UserListView.as_view()), 
-    path("user/<int:id>/", UserDetailView.as_view()) 
+    path("user/<int:id>/", UserDetailView.as_view()),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
